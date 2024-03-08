@@ -18,6 +18,15 @@ func init() {
 		panic(err)
 	}
 	NavComp = atsData
+	log.Printf("NavComp Loaded")
+	r, err := LoadCacheFromFile("atscache.json")
+	if err != nil {
+		log.Printf("Error loading cache from file %s: %s", "atscache.json", err)
+		panic(err)
+	}
+	routeCache = r
+	log.Println("Route Cache Loaded")
+
 }
 
 func main() {
@@ -36,7 +45,17 @@ func main() {
 			log.Println("Expected 'source' and 'target' flags")
 			os.Exit(1)
 		}
-		duration, err := DirectRoute(*brouteSource, *brouteTarget, *brouteSpeed)
+		source, target, err := NavComp.ResolveObjects(*brouteSource, *brouteTarget)
+		if err != nil {
+			log.Printf("Error resolving objects: %s", err)
+			panic(err)
+		}
+		route, err := BestRoute(source, target)
+		if err != nil {
+			log.Printf("Error calculating best route: %s", err)
+			panic(err)
+		}
+		duration := route.TimeToExecute(*brouteSpeed)
 		if err != nil {
 			log.Printf("Error calculating best route: %s", err)
 			panic(err)

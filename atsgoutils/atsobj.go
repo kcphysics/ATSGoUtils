@@ -49,6 +49,18 @@ func (a *ATSData) FindObject(name string) (*AstralBody, error) {
 	return nil, fmt.Errorf("object %s not found", name)
 }
 
+func (a *ATSData) ResolveObjects(source, target string) (*AstralBody, *AstralBody, err) {
+	sourceObj, err := a.FindObject(source)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error looking up source %s: %w", source, err)
+	}
+	targetObj, err := a.FindObject(target)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error looking up target %s: %w", target, err)
+	}
+	return sourceObj, targetObj, nil
+}
+
 type NavcompDB struct {
 	Version float64  `json:"version"`
 	Empires []Empire `json:"empires"`
