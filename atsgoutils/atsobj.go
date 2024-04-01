@@ -49,7 +49,16 @@ func (a *ATSData) FindObject(name string) (*AstralBody, error) {
 	return nil, fmt.Errorf("object %s not found", name)
 }
 
-func (a *ATSData) ResolveObjects(source, target string) (*AstralBody, *AstralBody, err) {
+func (a *ATSData) FilterBodies(filter func(AstralBody) bool) []AstralBody {
+	var bodies []AstralBody
+	for _, empire := range a.NavcompDB.Empires {
+		empireBodies := empire.FilterBodies(filter)
+		bodies = append(bodies, empireBodies...)
+	}
+	return bodies
+}
+
+func (a *ATSData) ResolveObjects(source, target string) (*AstralBody, *AstralBody, error) {
 	sourceObj, err := a.FindObject(source)
 	if err != nil {
 		return nil, nil, fmt.Errorf("error looking up source %s: %w", source, err)
@@ -72,6 +81,21 @@ type Empire struct {
 	Borders     []Border     `json:"borders"`
 	Planets     []AstralBody `json:"planets"`
 	Stations    []AstralBody `json:"stations"`
+}
+
+func (e *Empire) FilterBodies(filter func(AstralBody) bool) []AstralBody {
+	var bodies []AstralBody
+	for _, body := range e.Planets {
+		if filter(body) {
+			bodies = append(bodies, body)
+		}
+	}
+	for _, body := range e.Stations {
+		if filter(body) {
+			bodies = append(bodies, body)
+		}
+	}
+	return bodies
 }
 
 func (e Empire) FindObject(name string) (*AstralBody, error) {

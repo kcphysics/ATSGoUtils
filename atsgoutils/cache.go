@@ -63,7 +63,7 @@ func (r RouteCache) WriteToFile(fname string) error {
 func (r *RouteCache) ReadFromFile(fname string) error {
 	rbyte, err := os.ReadFile(fname)
 	if err != nil {
-		if errors.Is(os.ErrNotExist, err) {
+		if errors.Is(err, os.ErrNotExist) {
 			log.Printf("File %s does not exist, loading new cache", fname)
 			return nil
 		} else {

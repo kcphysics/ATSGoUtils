@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 )
@@ -29,11 +30,41 @@ func init() {
 
 }
 
+func findHeading(x, y, z, pitch, yaw, speed, lineDistance, sdist *float64, empire *string) error {
+	if (x != nil && *x <= -99999) || (y != nil && *y <= -99999) || (z != nil && *z <= -99999) {
+		return fmt.Errorf("expected x, y and z, received %f, %f and %f respectively", *x, *y, *z)
+	}
+	if (pitch != nil && *pitch >= 400) || (yaw != nil && *yaw >= 400) {
+		return fmt.Errorf("expected pitch and yaw, received %f and %f respectively", *pitch, *yaw)
+	}
+	if speed != nil && *speed == 999 {
+		return fmt.Errorf("expected speed, received %f", *speed)
+	}
+	headings, err := FindObjectAlongLine(*x, *y, *z, *yaw, *pitch, *speed, *lineDistance, *sdist, empire)
+	if err != nil {
+		return fmt.Errorf("error during findobject: %w", err)
+	}
+	for _, heading := range headings {
+		fmt.Println(heading)
+	}
+	return nil
+}
+
 func main() {
 	brouteCmd := flag.NewFlagSet("bestroute", flag.ExitOnError)
 	brouteSource := brouteCmd.String("source", "", "Source Object Name or Partial name (e.g. magna for Magna Roma)")
 	brouteTarget := brouteCmd.String("target", "", "Target Object Name or Partial name (e.g. 303 for 303)")
 	brouteSpeed := brouteCmd.Float64("speed", 22, "Speed in knots")
+	findHeadingCmd := flag.NewFlagSet("findheading", flag.ExitOnError)
+	findHeadingX := findHeadingCmd.Float64("X", -99999, "X Coordinate")
+	findHeadingY := findHeadingCmd.Float64("Y", -99999, "X Coordinate")
+	findHeadingZ := findHeadingCmd.Float64("Z", -99999, "X Coordinate")
+	findHeadingSpeed := findHeadingCmd.Float64("speed", 999, "Warp Speed the object was travelling at")
+	findHeadingPitch := findHeadingCmd.Float64("pitch", 999, "Pitch of the object")
+	findHeadingYaw := findHeadingCmd.Float64("yaw", 999, "Yaw of the object")
+	findHeadingEmpire := findHeadingCmd.String("frame", "grc", "Empire, by default, this is GRC")
+	findHeadingSDist := findHeadingCmd.Float64("sdist", 50, "Distance to use as the 'Same Object', you don't get the station -and- planet")
+	findHeadingLineDist := findHeadingCmd.Float64("dist", 1000, "Length of virtual line to use in Parsecs")
 	if len(os.Args) < 2 {
 		log.Println("Expected 'bestroute' subcommand")
 		os.Exit(1)
@@ -61,35 +92,15 @@ func main() {
 			panic(err)
 		}
 		log.Printf("It should take %s to go from %s to %s at %f", duration, *brouteSource, *brouteTarget, *brouteSpeed)
+	case "findheading":
+		findHeadingCmd.Parse(os.Args[2:])
+		err := findHeading(findHeadingX, findHeadingY, findHeadingZ, findHeadingPitch, findHeadingYaw, findHeadingSpeed, findHeadingLineDist, findHeadingSDist, findHeadingEmpire)
+		if err != nil {
+			log.Printf("Error finding Heading: %s", err)
+			panic(err)
+		}
 	default:
 		log.Println("Expected 'bestroute' subcommand")
 		os.Exit(1)
 	}
-	// log.Println("NavComp Loaded")
-	// var duration time.Duration
-	// var speed float64 = 27
-	// source := "magna"
-	// dest := "303"
-	// log.Printf("Calculating route from %s to %s with speed %f", source, dest, speed)
-	// magna, err := NavComp.FindObject("magna")
-	// if err != nil {
-	// 	log.Printf("Error getting comp magna: %s", err)
-	// 	panic(err)
-	// }
-	// log.Printf("%#v", magna)
-	// epsilon303, err := NavComp.FindObject("303")
-	// if err != nil {
-	// 	log.Printf("Error getting comp 303: %s", err)
-	// 	panic(err)
-	// }
-	// log.Printf("%#v", epsilon303)
-	// timeToPoint, err := magna.TimeToObject(*epsilon303, speed)
-	// if err != nil {
-	// 	log.Printf("Error calculating time to point: %s", err)
-	// 	panic(err)
-	// }
-	// log.Printf("It should take %f seconds to go from %s to %s at %f", timeToPoint, source, dest, speed)
-	// val := int64(math.Ceil(timeToPoint * 1e9))
-	// duration = time.Duration(val)
-	// log.Printf("It should take %s to go from %s to %s at %f", duration, source, dest, speed)
 }
