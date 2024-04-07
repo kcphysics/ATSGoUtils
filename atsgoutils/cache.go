@@ -83,5 +83,8 @@ func LoadCacheFromFile(fname string) (*RouteCache, error) {
 	if err != nil {
 		return nil, err
 	}
+	if r.RouteMap == nil {
+		r.RouteMap = make(map[string]Route)
+	}
 	return &r, nil
 }

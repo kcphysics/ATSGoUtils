@@ -23,7 +23,7 @@ var (
 		"Latinum Galleria":    nil,
 		"Elosian City":        nil,
 		"Clispau IX":          nil,
-		"Kildare":             nil,
+		"Kildare XI":          nil,
 	}
 )
 
@@ -204,14 +204,14 @@ func ParseATSDataFromFile(filename string) (*ATSData, error) {
 			atsData.NavcompDB.Empires[ndx].Planets[indx].CreatePoint()
 			_, ok := Gates[planet.Name]
 			if ok {
-				Gates[planet.Name] = &planet
+				Gates[planet.Name] = &atsData.NavcompDB.Empires[ndx].Planets[indx]
 			}
 		}
 		for indx, station := range empire.Stations {
 			atsData.NavcompDB.Empires[ndx].Stations[indx].CreatePoint()
 			_, ok := Gates[station.Name]
 			if ok {
-				Gates[station.Name] = &station
+				Gates[station.Name] = &atsData.NavcompDB.Empires[ndx].Stations[indx]
 			}
 		}
 	}

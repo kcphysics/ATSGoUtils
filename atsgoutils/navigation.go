@@ -14,6 +14,22 @@ type Route struct {
 	Stops          []*Route
 }
 
+func (r *Route) GetStatement(speed float64) (time.Duration, string) {
+	if r.IsDirect {
+		executeTime := r.TimeToExecute(speed).Truncate(time.Second)
+		return executeTime, fmt.Sprintf("DIRECT: %s to %s ETA: %s", r.Source.Name, r.Target.Name, executeTime)
+	}
+	statement := "GATED:\n"
+	totalDuration := time.Duration(0)
+	for ndx, stop := range r.Stops {
+		executeTime, partialStatement := stop.GetStatement(speed)
+		totalDuration += executeTime
+		statement += fmt.Sprintf("\t%d: %s\n", ndx, partialStatement)
+	}
+	statement += fmt.Sprintf("TOTAL: %s", totalDuration)
+	return totalDuration, statement
+}
+
 func (r *Route) AverageCochranes() float64 {
 	sCochranes := r.Source.Cochranes
 	if sCochranes == 0 {
@@ -61,6 +77,9 @@ func ShortestRouteToGates(astralObj *AstralBody) (*Route, error) {
 	var targetRoute *Route
 	shortestDistance := float64(0)
 	for _, gate := range Gates {
+		if gate == nil {
+			continue
+		}
 		route, err := routeCache.GetRouteFromBodies(astralObj, gate)
 		if err != nil {
 			return nil, fmt.Errorf("error getting route from %s to %s: %w", astralObj.Name, gate.Name, err)

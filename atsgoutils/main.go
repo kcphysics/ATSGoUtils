@@ -86,12 +86,14 @@ func main() {
 			log.Printf("Error calculating best route: %s", err)
 			panic(err)
 		}
-		duration := route.TimeToExecute(*brouteSpeed)
-		if err != nil {
-			log.Printf("Error calculating best route: %s", err)
-			panic(err)
-		}
-		log.Printf("It should take %s to go from %s to %s at %f", duration, *brouteSource, *brouteTarget, *brouteSpeed)
+		_, statement := route.GetStatement(*brouteSpeed)
+		fmt.Println(statement)
+		// duration := route.TimeToExecute(*brouteSpeed)
+		// if err != nil {
+		// 	log.Printf("Error calculating best route: %s", err)
+		// 	panic(err)
+		// }
+		// log.Printf("It should take %s to go from %s to %s at %f", duration, *brouteSource, *brouteTarget, *brouteSpeed)
 	case "findheading":
 		findHeadingCmd.Parse(os.Args[2:])
 		err := findHeading(findHeadingX, findHeadingY, findHeadingZ, findHeadingPitch, findHeadingYaw, findHeadingSpeed, findHeadingLineDist, findHeadingSDist, findHeadingEmpire)
